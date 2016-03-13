@@ -32,15 +32,17 @@ def _stats(arr1, arr2):
 def cohen_d(x1, x2, s1, s2, n1, n2):
 	return abs(x1 - x2) / (((n1 - 1) * (s1 ** 2) + (n2 - 1) * (s2 ** 2)) / (n1 + n2 - 2)) ** 0.5
 
-def comparison_test(arr1, arr2, name1, name2, tail=1):
+def comparison_test(arr1, arr2, name1, name2, tail=1, bonf=1):
 	stats = _stats(arr1, arr2)
 	p_value = 1 - t.cdf(t_test(*stats), min(len(arr1), len(arr2)) - 1)
 	if tail == 2: #In case for two tail test
 		p_value *= 2
+	alpha = ALPHA / bonf
 	print "The p-value between {0} and {1} is {2:.5f} and it {3} the null hypothesis".format(
 			name1, name2, p_value,
-			"reject" if p_value < 0.05 else "does not reject")
-	if p_value < 0.05:
+			"reject" if p_value < alpha else "does not reject")
+	print "Actual Alpha is", format(alpha, '.4f')
+	if p_value < alpha:
 		print "The effect size is {0:.5f}".format(cohen_d(*stats))
 
 def confi_interval(x, s, n, alpha):
@@ -74,13 +76,13 @@ def analysis(data):
 	wno, wpy2, wpy3 = _numpy_data(w, 'WBC')
 	#run t-test for the difference of mean. Note that below are sparated tests
 	print "*****************\nBelow are Body Temperature under Fever comparion test\n*****************\n"
-	comparison_test(fno, fpy2, 'No disease', 'Py2')
-	comparison_test(fno, fpy3, 'No disease', 'Py3')
-	comparison_test(fpy2, fpy3, 'Py2', 'Py3', 2)
+	comparison_test(fno, fpy2, 'No disease', 'Py2', bonf=3)
+	comparison_test(fno, fpy3, 'No disease', 'Py3', bonf=3)
+	comparison_test(fpy2, fpy3, 'Py2', 'Py3', 2, 3)
 	print "\n*****************\nBelow are WBC comparion test\n*****************\n"
-	comparison_test(wno, wpy2, 'No disease', 'Py2')
-	comparison_test(wno, wpy3, 'No disease', 'Py3')
-	comparison_test(wpy2, wpy3, 'Py2', 'Py3', 2)
+	comparison_test(wno, wpy2, 'No disease', 'Py2', bonf=3)
+	comparison_test(wno, wpy3, 'No disease', 'Py3', bonf=3)
+	comparison_test(wpy2, wpy3, 'Py2', 'Py3', 2, 3)
 	print "\n*****************\nBelow are WBC abnormal rates\n*****************\n"
 	subnormal_rate(wno, "No disease")
 	subnormal_rate(wpy2, "Py2 disease")
